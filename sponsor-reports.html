@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JCI 3 — Sponsor Reach Reports</title>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--red:#eb1f25;--dark:#060606;--card:#0f0f0f;--card2:#141414;--border:#1f1f1f;--gray:#777;--white:#fff;--green:#4ade80;--gold:#FFD700;--diamond:#b9f2ff;--platinum:#e0e0e0;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--dark);color:var(--white);overflow-x:hidden;}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:200;background:rgba(5,5,5,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);height:60px;display:flex;align-items:center;justify-content:space-between;padding:0 2rem;}
+.nav-left{display:flex;align-items:center;gap:.75rem;}
+.nav-left img{height:34px;width:auto;object-fit:contain;}
+.nav-title{font-family:'Anton',sans-serif;font-size:1rem;letter-spacing:2px;color:var(--white);}
+.nav-sub{font-size:.6rem;letter-spacing:3px;text-transform:uppercase;color:var(--gray);}
+.nav-back{font-size:.7rem;letter-spacing:1px;text-transform:uppercase;color:var(--gray);text-decoration:none;transition:color .2s;}
+.nav-back:hover{color:var(--red);}
+.nav-back::before{content:'← ';}
+
+/* SPONSOR SELECTOR */
+.sponsor-bar{position:fixed;top:60px;left:0;right:0;z-index:190;background:rgba(5,5,5,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);overflow-x:auto;white-space:nowrap;padding:.6rem 1.5rem;display:flex;gap:.35rem;}
+.sponsor-bar::-webkit-scrollbar{height:3px;}
+.sponsor-bar::-webkit-scrollbar-track{background:var(--dark);}
+.sponsor-bar::-webkit-scrollbar-thumb{background:var(--red);border-radius:2px;}
+.sp-btn{display:inline-flex;flex-direction:column;align-items:center;gap:.2rem;padding:.5rem 1rem;background:none;border:1px solid var(--border);color:var(--gray);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.68rem;letter-spacing:1px;text-transform:uppercase;border-radius:3px;transition:all .2s;white-space:nowrap;}
+.sp-btn .tier-dot{width:6px;height:6px;border-radius:50%;display:block;}
+.sp-btn.diamond .tier-dot{background:var(--diamond);}
+.sp-btn.platinum .tier-dot{background:var(--platinum);}
+.sp-btn.gold .tier-dot{background:var(--gold);}
+.sp-btn:hover{color:var(--white);border-color:var(--gray);}
+.sp-btn.active{background:var(--red);border-color:var(--red);color:var(--white);}
+.sp-btn.active .tier-dot{background:var(--white);}
+
+/* REPORTS */
+.report{display:none;padding:140px 2rem 5rem;min-height:100vh;}
+.report.active{display:block;}
+.max{max-width:1000px;margin:0 auto;}
+
+/* REPORT HERO */
+.report-hero{display:grid;grid-template-columns:auto 1fr;gap:2.5rem;align-items:center;margin-bottom:3rem;padding:2.5rem;background:var(--card);border:1px solid var(--border);border-radius:6px;position:relative;overflow:hidden;}
+@media(max-width:640px){.report-hero{grid-template-columns:1fr;}}
+.report-hero::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.report-hero.diamond::before{background:linear-gradient(90deg,var(--diamond),#7fd8f0);}
+.report-hero.platinum::before{background:linear-gradient(90deg,var(--platinum),#bbb);}
+.report-hero.gold::before{background:linear-gradient(90deg,var(--gold),#e6b800);}
+.sponsor-logo-box{width:160px;height:100px;border:1px solid var(--border);border-radius:4px;display:flex;align-items:center;justify-content:center;background:#111;overflow:hidden;flex-shrink:0;}
+.sponsor-logo-box img{max-width:140px;max-height:80px;object-fit:contain;}
+.sponsor-logo-box .logo-placeholder{font-family:'Anton',sans-serif;font-size:.9rem;letter-spacing:1px;text-align:center;color:var(--gray);padding:0.5rem;}
+.hero-text .eyebrow{font-size:.58rem;letter-spacing:4px;text-transform:uppercase;color:var(--red);margin-bottom:.5rem;}
+.hero-text h1{font-family:'Anton',sans-serif;font-size:clamp(1.8rem,4vw,3rem);letter-spacing:2px;text-transform:uppercase;line-height:1;margin-bottom:.5rem;}
+.tier-badge{display:inline-block;padding:.25rem .8rem;border-radius:2px;font-size:.6rem;letter-spacing:3px;text-transform:uppercase;font-weight:700;margin-bottom:.75rem;}
+.tier-badge.diamond{background:rgba(185,242,255,.1);border:1px solid var(--diamond);color:var(--diamond);}
+.tier-badge.platinum{background:rgba(224,224,224,.1);border:1px solid var(--platinum);color:var(--platinum);}
+.tier-badge.gold{background:rgba(255,215,0,.1);border:1px solid var(--gold);color:var(--gold);}
+.hero-text .event-meta{font-size:.8rem;color:var(--gray);}
+
+/* BIG NUMBERS */
+.big-numbers{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-bottom:2rem;}
+.bn-card{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:1.5rem;text-align:center;position:relative;overflow:hidden;}
+.bn-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--red);}
+.bn-card.highlight::after{background:linear-gradient(90deg,var(--red),#ff6b6b);}
+.bn-val{font-family:'Anton',sans-serif;font-size:2.2rem;color:var(--white);display:block;line-height:1;}
+.bn-val.red{color:var(--red);}
+.bn-val.green{color:var(--green);}
+.bn-lbl{font-size:.6rem;letter-spacing:2px;text-transform:uppercase;color:var(--gray);margin-top:.4rem;display:block;}
+.bn-note{font-size:.65rem;color:var(--red);margin-top:.25rem;display:block;}
+
+/* SECTION HEADERS */
+.sec-header{margin:2.5rem 0 1.25rem;}
+.sec-header h2{font-family:'Anton',sans-serif;font-size:1.3rem;letter-spacing:2px;text-transform:uppercase;margin-bottom:.2rem;}
+.sec-header p{font-size:.82rem;color:var(--gray);}
+.sec-divider{width:32px;height:2px;background:var(--red);margin-bottom:1.25rem;}
+
+/* CHANNEL BREAKDOWN */
+.channel-table{background:var(--card);border:1px solid var(--border);border-radius:4px;overflow:hidden;margin-bottom:2rem;}
+.ch-row{display:grid;grid-template-columns:1fr auto auto;align-items:center;padding:.9rem 1.25rem;border-bottom:1px solid var(--border);gap:1rem;}
+.ch-row:last-child{border:none;}
+.ch-row.header{background:#0a0a0a;padding:.65rem 1.25rem;}
+.ch-row.header span{font-size:.58rem;letter-spacing:2px;text-transform:uppercase;color:var(--gray);}
+.ch-name{font-size:.88rem;color:var(--white);}
+.ch-detail{font-size:.72rem;color:var(--gray);margin-top:.15rem;}
+.ch-reach{font-family:'Anton',sans-serif;font-size:1.1rem;color:var(--white);text-align:right;}
+.ch-reach.red{color:var(--red);}
+.ch-pct{font-size:.65rem;color:var(--gray);text-align:right;}
+.ch-bar-wrap{grid-column:1/-1;margin-top:-.25rem;}
+.ch-bar{height:3px;background:var(--border);border-radius:2px;overflow:hidden;}
+.ch-bar-fill{height:100%;background:var(--red);border-radius:2px;}
+.ch-total-row{display:flex;justify-content:space-between;align-items:center;padding:1rem 1.25rem;background:rgba(235,31,37,.06);border-top:1px solid rgba(235,31,37,.2);}
+.ch-total-row .tl{font-size:.65rem;letter-spacing:3px;text-transform:uppercase;color:var(--gray);}
+.ch-total-row .tv{font-family:'Anton',sans-serif;font-size:1.5rem;color:var(--red);}
+
+/* COMMERCIAL BOX */
+.commercial-box{background:var(--card);border:1px solid var(--border);border-radius:4px;overflow:hidden;margin-bottom:2rem;}
+.cb-head{background:linear-gradient(90deg,#0a0000,#160000);padding:1.25rem 1.5rem;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(235,31,37,.2);}
+.cb-head h3{font-family:'Anton',sans-serif;font-size:1rem;letter-spacing:2px;text-transform:uppercase;color:var(--red);}
+.cb-head .cb-type{font-size:.65rem;letter-spacing:2px;text-transform:uppercase;color:var(--gray);}
+.cb-plays{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1px;background:var(--border);}
+.cb-play{background:var(--card2);padding:1.25rem;text-align:center;}
+.cb-play .pv{font-family:'Anton',sans-serif;font-size:1.6rem;color:var(--white);display:block;}
+.cb-play .pl{font-size:.6rem;letter-spacing:2px;text-transform:uppercase;color:var(--gray);}
+.cb-note{padding:.9rem 1.25rem;font-size:.78rem;color:var(--gray);line-height:1.6;}
+
+/* PHOTOS */
+.photos-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:2rem;}
+@media(max-width:560px){.photos-grid{grid-template-columns:1fr;}}
+.photo-item{position:relative;border-radius:4px;overflow:hidden;border:1px solid var(--border);}
+.photo-item img{width:100%;display:block;object-fit:cover;height:260px;}
+.photo-caption{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(0deg,rgba(0,0,0,.9) 0%,transparent 100%);padding:1rem .9rem .7rem;font-size:.65rem;letter-spacing:2px;text-transform:uppercase;color:#bbb;}
+.photo-caption span{color:var(--red);}
+
+/* SOCIAL BREAKDOWN */
+.social-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-bottom:2rem;}
+.social-card{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:1.25rem;}
+.social-card h4{font-size:.58rem;letter-spacing:3px;text-transform:uppercase;color:var(--red);margin-bottom:.9rem;padding-bottom:.5rem;border-bottom:1px solid var(--border);}
+.sc-stat{display:flex;justify-content:space-between;align-items:center;padding:.45rem 0;border-bottom:1px solid #0a0a0a;font-size:.82rem;}
+.sc-stat:last-child{border:none;}
+.sc-stat .sl{color:#999;}
+.sc-stat .sv{font-family:'Anton',sans-serif;font-size:.95rem;color:var(--white);}
+
+/* RENEWAL CTA */
+.renewal-cta{background:linear-gradient(135deg,#0a0000,#1e0000);border:1px solid var(--red);border-radius:6px;padding:2.5rem;display:grid;grid-template-columns:1fr auto;gap:2rem;align-items:center;margin-bottom:3rem;}
+@media(max-width:560px){.renewal-cta{grid-template-columns:1fr;}}
+.rc-text h3{font-family:'Anton',sans-serif;font-size:1.8rem;letter-spacing:2px;text-transform:uppercase;margin-bottom:.5rem;}
+.rc-text h3 em{color:var(--red);font-style:normal;}
+.rc-text p{font-size:.85rem;color:#aaa;line-height:1.65;}
+.rc-text .rc-savings{display:inline-block;background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.3);color:var(--green);font-size:.7rem;letter-spacing:2px;text-transform:uppercase;padding:.3rem .8rem;border-radius:2px;margin-top:.75rem;}
+.btn-cta{display:inline-block;background:var(--red);color:var(--white);font-family:'Anton',sans-serif;font-size:.85rem;letter-spacing:3px;text-transform:uppercase;padding:.9rem 2rem;border-radius:2px;text-decoration:none;white-space:nowrap;transition:all .2s;border:none;cursor:pointer;}
+.btn-cta:hover{background:#c91920;transform:translateY(-2px);box-shadow:0 6px 20px rgba(235,31,37,.35);}
+
+/* FOOTER */
+.report-footer{text-align:center;padding:1.5rem 0;border-top:1px solid var(--border);}
+.report-footer p{font-size:.7rem;color:#333;letter-spacing:1px;}
+.report-footer a{color:var(--red);text-decoration:none;}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-left">
+    <img src="jci-images/web/jci-logo-white.jpg" alt="JCI">
+    <div>
+      <div class="nav-title">JCI 3 · Sponsor Reports</div>
+      <div class="nav-sub">The Dominion · May 9, 2026</div>
+    </div>
+  </div>
+  <a href="index.html" class="nav-back">Back to Hub</a>
+</nav>
+
+<div class="sponsor-bar">
+  <button class="sp-btn diamond active" onclick="show('ari')">
+    <span class="tier-dot"></span>Advanced Relief Institute
+  </button>
+  <button class="sp-btn diamond" onclick="show('epro')">
+    <span class="tier-dot"></span>EPRO Group Services
+  </button>
+  <button class="sp-btn platinum" onclick="show('unjunkd')">
+    <span class="tier-dot"></span>UnJunkd
+  </button>
+  <button class="sp-btn platinum" onclick="show('bitfortune')">
+    <span class="tier-dot"></span>BitFortune.com
+  </button>
+  <button class="sp-btn platinum" onclick="show('nama')">
+    <span class="tier-dot"></span>NAMA Water
+  </button>
+  <button class="sp-btn platinum" onclick="show('jax')">
+    <span class="tier-dot"></span>Jax Tire &amp; Auto
+  </button>
+  <button class="sp-btn platinum" onclick="show('kennys')">
+    <span class="tier-dot"></span>Kenny's Flooring
+  </button>
+  <button class="sp-btn gold" onclick="show('leatherman')">
+    <span class="tier-dot"></span>Leatherman
+  </button>
+  <button class="sp-btn gold" onclick="show('alphaking')">
+    <span class="tier-dot"></span>Alpha King
+  </button>
+</div>
+
+<!-- ═══════════════════════════════════
+     ADVANCED RELIEF INSTITUTE — DIAMOND
+═══════════════════════════════════ -->
+<div class="report active" id="report-ari">
+<div class="max">
+  <div class="report-hero diamond">
+    <div class="sponsor-logo-box">
+      <!-- Logo file: jci-images/logos/logo-advanced-relief.png -->
+      <img src="jci-images/logos/logo-advanced-relief.png" alt="Advanced Relief Institute" onerror="this.parentNode.innerHTML='<div class=\'logo-placeholder\'>ADVANCED<br>RELIEF<br>INSTITUTE</div>'">
+    </div>
+    <div class="hero-text">
+      <div class="eyebrow">JCI 3 · The Dominion · Sponsor Report</div>
+      <div class="tier-badge diamond">💎 Diamond Sponsor</div>
+      <h1>Advanced Relief<br>Institute</h1>
+      <div class="event-meta">May 9, 2026 · The Vixen, McHenry IL · 400+ Attendees · Livestreamed Worldwide</div>
+    </div>
+  </div>
+
+  <div class="big-numbers">
+    <div class="bn-card highlight">
+      <span class="bn-val red">1,400,000</span>
+      <span class="bn-lbl">Total Estimated Reach</span>
+      <span class="bn-note">Event cycle · Sep–May 2026</span>
+    </div>
+    <div class="bn-card">
+      <span class="bn-val">60,000+</span>
+      <span class="bn-lbl">Commercial Impressions</span>
+      <span class="bn-note">6 plays × 10K+ viewers</span>
+    </div>
+    <div class="bn-card">
+      <span class="bn-val">10,000+</span>
+      <span class="bn-lbl">Live Stream Viewers</span>
+      <span class="bn-note">YouTube · event day</span>
+    </div>
+    <div class="bn-card">
+      <span class="bn-val">400+</span>
+      <span class="bn-lbl">In-Person Attendees</span>
+      <span class="bn-note">The Vixen · sold out</span>
+    </div>
+  </div>
+
+  <div class="sec-header"><h2>Reach by Channel</h2><div class="sec-divider"></div></div>
+  <div class="channel-table">
+    <div class="ch-row header"><span>Placement</span><span>Reach</span><span>%</span></div>
+    <div class="ch-row">
+      <div><div class="ch-name">JCI Instagram — Full Event Cycle</div><div class="ch-detail">Featured in social campaigns + pre-event promotions · first-position tagging</div></div>
+      <div class="ch-reach red">711,000</div><div class="ch-pct">50.8%</div>
+      <div class="ch-bar-wrap"><div class="ch-bar"><div class="ch-bar-fill" style="width:100%"></div></div></div>
+    </div>
+    <div class="ch-row">
+      <div><div class="ch-name">@BigFrogBJJ — Event Cycle Reach</div><div class="ch-detail">Jeff's personal account · cross-promoted sponsor coverage</div></div>
+      <div class="ch-reach">598,000</div><div class="ch-pct">42.7%</div>
+      <div class="ch-bar-wrap"><div class="ch-bar"><div class="ch-bar-fill" style="width:84%"></div></div></div>
+    </div>
+    <div class="ch-row">
+      <div><div class="ch-name">YouTube — Broadcast + Replays</div><div class="ch-detail">Mat logo visible throughout broadcast · 30-sec commercial × 6 minimum plays · featured replay sponsor</div></div>
+      <div class="ch-reach">462,300</div><div class="ch-pct">33%</div>
+      <div class="ch-bar-wrap"><div class="ch-bar"><div class="ch-bar-fill" style="width:65%"></div></div></div>
+    </div>
+    <div class="ch-row">
+      <div><div class="ch-name">20' LED Screen — Live Event</div><div class="ch-detail">Walkouts · intermissions · stream breaks · in-person + livestream audience</div></div>
+      <div class="ch-reach">10,400+</div><div class="ch-pct">—</div>
+      <div class="ch-bar-wrap"><div class="ch-bar"><div class="ch-bar-fill" style="width:8%"></div></div></div>
+    </div>
+    <div class="ch-row">
+      <div><div class="ch-name">Athlete Rashguards</div><div class="ch-detail">Logo visible on competing athletes throughout all matches · all replay footage</div></div>
+      <div class="ch-reach">10,400+</div><div class="ch-pct">—</div>
+      <div class="ch-bar-wrap"><div class="ch-bar"><div class="ch-bar-fill" style="width:8%"></div></div></div>
+    </div>
+    <div class="ch-row">
+      <div><div class="ch-name">Mat — 4 Logo Placements (2L + 2M)</div><div class="ch-detail">Center and mid-mat · visible in every aerial and ringside shot</div></div>
+      <div class="ch-reach">10,400+</div><div class="ch-pct">—</div>
+      <div class="ch-bar-wrap"><div class="ch-bar"><div class="ch-bar-fill" style="width:8%"></div></div></div>
+    </div>
+    <div class="ch-row">
+      <div><div class="ch-name">Step-and-Repeat Backdrop</div><div class="ch-detail">All commentary, interviews, and broadcast opens · photo wall throughout event</div></div>
+      <div class="ch-reach">10,400+</div><div class="ch-pct">—</div>
+      <div class="ch-bar-wrap"><div class="ch-bar"><div class="ch-bar-fill" style="width:8%"></div></div></div>
+    </div>
+    <div class="ch-row">
+      <div><div class="ch-name">Email Blasts (4 Campaigns)</div><div class="ch-detail">Sent across 4 platforms to 14K subscribers · athletes &amp; supporters</div></div>
+      <div class="ch-reach">14,000</div><div class="ch-pct">—</div>
+      <div class="ch-bar-wrap"><div class="ch-bar"><div class="ch-bar-fill" style="width:10%"></div></div></div>
+    </div>
+    <div class="ch-row">
+      <div><div class="ch-name">Press Coverage</div><div class="ch-detail">25+ local publications · 3 podcast appearances</div></div>
+      <div class="ch-reach">Est. 50K+</div><div class="ch-pct">—</div>
+      <div class="ch-bar-wrap"><div class="ch-bar"><div class="ch-bar-fill" style="width:5%"></div></div></div>
+    </div>
+    <div class="ch-total-row"><span class="tl">Total Estimated Reach</span><span class="tv">~1,400,000</span></div>
+  </div>
+
+  <div class="sec-header"><h2>Commercial Performance</h2><div class="sec-divider"></div></div>
+  <div class="commercial-box">
+    <div class="cb-head"><h3>30-Second Commercial Spot</h3><div class="cb-type">Diamond Tier · Minimum 6 Plays</div></div>
+    <div class="cb-plays">
+      <div class="cb-play"><span class="pv">6+</span><span class="pl">Plays During<br>Live Event &amp; Stream</span></div>
+      <div class="cb-play"><span class="pv">10,000+</span><span class="pl">Live Viewers<br>Per Play</span></div>
+      <div class="cb-play"><span class="pv">60,000+</span><span class="pl">Total Commercial<br>Impressions</span></div>
+      <div class="cb-play"><span class="pv">30 sec</span><span class="pl">Spot Duration</span></div>
+    </div>
+    <div class="cb-note">Commercial aired a minimum of 6 times throughout the live broadcast on YouTube. Replays and VOD content continue to deliver views beyond event day. Your commercial is part of every future viewer's experience.</div>
+  </div>
+
+  <div class="sec-header"><h2>Your Brand in Action</h2><div class="sec-divider"></div></div>
+  <div class="photos-grid">
+    <div class="photo-item">
+      <img src="jci-images/web/mat-photo.jpg" alt="Mat Placement" style="object-position:center top;">
+      <div class="photo-caption"><span>Advanced Relief Institute</span> — Mat Logo Placement</div>
+    </div>
+    <div class="photo-item">
+      <img src="jci-images/web/step-repeat.jpg" alt="Step and Repeat" style="object-position:center top;">
+      <div class="photo-caption"><span>Advanced Relief Institute</span> — Step-and-Repeat Backdrop</div>
+    </div>
+  </div>
+
+  <div class="sec-header"><h2>Social &amp; Email Summary</h2><div class="sec-divider"></div></div>
+  <div class="social-grid">
+    <div class="social-card">
+      <h4>Social Posts</h4>
+      <div class="sc-stat"><span class="sl">Pre-event posts</span><span class="sv">70+</span></div>
+      <div class="sc-stat"><span class="sl">During event</span><span class="sv">20+</span></div>
+      <div class="sc-stat"><span class="sl">Post-event</span><span class="sv">30+</span></div>
+      <div class="sc-stat"><span class="sl">Platforms</span><span class="sv">4</span></div>
+    </div>
+    <div class="social-card">
+      <h4>Email Campaigns</h4>
+      <div class="sc-stat"><span class="sl">Blasts sent</span><span class="sv">4</span></div>
+      <div class="sc-stat"><span class="sl">List size</span><span class="sv">14,000</span></div>
+      <div class="sc-stat"><span class="sl">Audience</span><span class="sv">Athletes &amp; Fans</span></div>
+    </div>
+    <div class="social-card">
+      <h4>Press</h4>
+      <div class="sc-stat"><span class="sl">Publications</span><span class="sv">25+</span></div>
+      <div class="sc-stat"><span class="sl">Podcasts</span><span class="sv">3</span></div>
+      <div class="sc-stat"><span class="sl">Est. press reach</span><span class="sv">50K+</span></div>
+    </div>
+    <div class="social-card">
+      <h4>Website</h4>
+      <div class="sc-stat"><span class="sl">Position</span><span class="sv">1st</span></div>
+      <div class="sc-stat"><span class="sl">Sponsor section</span><span class="sv">Featured</span></div>
+      <div class="sc-stat"><span class="sl">Duration</span><span class="sv">Full cycle</span></div>
+    </div>
+  </div>
+
+  <div class="renewal-cta">
+    <div class="rc-text">
+      <h3>Ready for <em>JCI 4?</em></h3>
+      <p>JCI 3 delivered 1.77M combined reach — up +93% from JCI 2. JCI 4 is on September 19, 2026 at The MAC in Crystal Lake with 780+ capacity. Lock in your Diamond sponsorship now before slots fill.</p>
+      <div class="rc-savings">2-Event Package: 15% Off · 3-Event Package: 25% Off</div>
+    </div>
+    <a href="mailto:info@jcinvitational.com?subject=JCI 4 Diamond Sponsorship — Advanced Relief Institute" class="btn-cta">Renew for JCI 4</a>
+  </div>
+  <div class="report-footer"><p>Jeff Curran Invitational · <a href="mailto:info@jcinvitational.com">info@jcinvitational.com</a> · 815-403-6696 · Athletes First. Always.</p></div>
+</div>
+</div>
+
+<!-- ═══════════════════════════════════
+     EPRO GROUP SERVICES — DIAMOND
+═══════════════════════════════════ -->
+<div class="report" id="report-epro">
+<div class="max">
+  <div class="report-hero diamond">
+    <div class="sponsor-logo-box">
+      <img src="jci-images/logos/logo-epro.png" alt="EPRO Group Services" onerror="this.parentNode.innerHTML='<div class=\'logo-placeholder\'>EPRO<br>GROUP<br>SERVICES</div>'">
+    </div>
+    <div class="hero-text">
+      <div class="eyebrow">JCI 3 · The Dominion · Sponsor Report</div>
+      <div class="tier-badge diamond">💎 Diamond Sponsor</div>
+      <h1>EPRO Group<br>Services</h1>
+      <div class="event-meta">May 9, 2026 · The Vixen, McHenry IL · 400+ Attendees · Livestreamed Worldwide</div>
+    </div>
+  </div>
+  <div class="big-numbers">
+    <div class="bn-card highlight"><span class="bn-val red">1,400,000</span><span class="bn-lbl">Total Estimated Reach</span><span class="bn-note">Event cycle · Sep–May 2026</span></div>
+    <div class="bn-card"><span class="bn-val">60,000+</span><span class="bn-lbl">Commercial Impressions</span><span class="bn-note">6 plays × 10K+ viewers</span></div>
+    <div class="bn-card"><span class="bn-val">10,000+</span><span class="bn-lbl">Live Stream Viewers</span><span class="bn-note">YouTube · event day</span></div>
+    <div class="bn-card"><span class="bn-val">400+</span><span class="bn-lbl">In-Person Attendees</span><span class="bn-note">The Vixen · sold out</span></div>
+  </div>
+  <div class="sec-header"><h2>Reach by Channel</h2><div class="sec-divider"></div></div>
+  <div class="channel-table">
+    <div class="ch-row header"><span>Placement</span><span>Reach</span><span>%</span></div>
+    <div class="ch-row"><div><div class="ch-name">JCI Instagram — Full Event Cycle</div><div class="ch-detail">Featured in social campaigns + pre-event promotions · first-position tagging</div></div><div class="ch-reach red">711,000</div><div class="ch-pct">50.8%</div><div class="ch-bar-wrap"><div class="ch-bar"><div class="ch-bar-fill" style="width:100%"></div></div></div></div>
+    <div class="ch-row"><div><div class="ch-name">@BigFrogBJJ — Event Cycle Reach</div><div class="ch-detail">Jeff's personal account · cross-promoted sponsor coverage</div></div><div class="ch-reach">598,000</div><div class="ch-pct">42.7%</div><div class="ch-bar-wrap"><div class="ch-bar"><div class="ch-bar-fill" style="width:84%"></div></div></div></div>
+    <div class="ch-row"><div><div class="ch-name">YouTube — Broadcast + Replays</div><div class="ch-detail">Mat logo visible throughout · 30-sec commercial × 6 min plays · featured replay sponsor</div></div><div class="ch-reach">462,300</div><div class="ch-pct">33%</div><div class="ch-bar-wrap"><div class="ch-bar"><div class="ch-bar-fill" style="width:65%"></div></div></div></div>
+    <div class="ch-row"><div><div class="ch-name">20' LED Screen · Mat (4 Placements) · Rashguards · Step-and-Repeat</div><div class="ch-detail">All in-venue and livestream placements throughout the full event</div></div><div class="ch-reach">10,400+</div><div class="ch-pct">—</div><div class="ch-bar-wrap"><div class="ch-bar"><div class="ch-bar-fill" style="width:8%"></div></div></div></div>
+    <div class="ch-row"><div><div class="ch-name">Email Blasts (4 Campaigns)</div><div class="ch-detail">14K subscribers · athletes &amp; supporters</div></div><div class="ch-reach">14,000</div><div class="ch-pct">—</div><div class="ch-bar-wrap"><div class="ch-bar"><div class="ch-bar-fill" style="width:10%"></div></div></div></div>
+    <div class="ch-row"><div><div class="ch-name">Press Coverage</div><div class="ch-detail">25+ local publications · 3 podcast appearances</div></div><div class="ch-reach">Est. 50K+</div><div class="ch-pct">—</div><div class="ch-bar-wrap"><div class="ch-bar"><div class="ch-bar-fill" style="width:5%"></div></div></div></div>
+    <div class="ch-total-row"><span class="tl">Total Estimated Reach</span><span class="tv">~1,400,000</span></div>
+  </div>
+  <div class="sec-header"><h2>Commercial Performance</h2><div class="sec-divider"></div></div>
+  <div class="commercial-box">
+    <div class="cb-head"><h3>30-Second Commercial Spot</h3><div class="cb-type">Diamond Tier · Minimum 6 Plays</div></div>
+    <div class="cb-plays">
+      <div class="cb-play"><span class="pv">6+</span><span class="pl">Plays During Live Event &amp; Stream</span></div>
+      <div class="cb-play"><span class="pv">10,000+</span><span class="pl">Live Viewers Per Play</span></div>
+      <div class="cb-play"><span class="pv">60,000+</span><span class="pl">Total Commercial Impressions</span></div>
+      <div class="cb-play"><span class="pv">30 sec</span><span class="pl">Spot Duration</span></div>
+    </div>
+    <div class="cb-note">EPRO Group Services appeared prominently across the mat, step-and-repeat, and LED screen — establishing major brand presence throughout the full event broadcast.</div>
+  </div>
+  <div class="sec-header"><h2>Your Brand in Action</h2><div class="sec-divider"></div></div>
+  <div class="photos-grid">
+    <div class="photo-item"><img src="jci-images/web/mat-photo.jpg" alt="Mat" style="object-position:center top;"><div class="photo-caption"><span>EPRO Group Services</span> — Mat Logo Placement</div></div>
+    <div class="photo-item"><img src="jci-images/web/step-repeat.jpg" alt="Step and Repeat" style="object-position:center top;"><div class="photo-caption"><span>EPRO Group Services</span> — Step-and-Repeat Backdrop</div></div>
+  </div>
+  <div class="social-grid">
+    <div class="social-card"><h4>Social Posts</h4><div class="sc-stat"><span class="sl">Pre-event</span><span class="sv">70+</span></div><div class="sc-stat"><span class="sl">During event</span><span class="sv">20+</span></div><div class="sc-stat"><span class="sl">Post-event</span><span class="sv">30+</span></div><div class="sc-stat"><span class="sl">Platforms</span><span class="sv">4</span></div></div>
+    <div class="social-card"><h4>Email</h4><div class="sc-stat"><span class="sl">Blasts</span><span class="sv">4</span></div><div class="sc-stat"><span class="sl">List size</span><span class="sv">14,000</span></div><div class="sc-stat"><span class="sl">Audience</span><span class="sv">Athletes &amp; Fans</span></div></div>
+    <div class="social-card"><h4>Press</h4><div class="sc-stat"><span class="sl">Publications</span><span class="sv">25+</span></div><div class="sc-stat"><span class="sl">Podcasts</span><span class="sv">3</span></div><div class="sc-stat"><span class="sl">Est. reach</span><span class="sv">50K+</span></div></div>
+    <div class="social-card"><h4>Website</h4><div class="sc-stat"><span class="sl">Position</span><span class="sv">1st</span></div><div class="sc-stat"><span class="sl">Duration</span><span class="sv">Full cycle</span></div></div>
+  </div>
+  <div class="renewal-cta">
+    <div class="rc-text"><h3>Ready for <em>JCI 4?</em></h3><p>JCI 3 delivered 1.77M combined reach. JCI 4 is September 19, 2026 at The MAC — 780+ capacity. Lock in Diamond now.</p><div class="rc-savings">2-Event Package: 15% Off · 3-Event Package: 25% Off</div></div>
+    <a href="mailto:info@jcinvitational.com?subject=JCI 4 Diamond Sponsorship — EPRO Group Services" class="btn-cta">Renew for JCI 4</a>
+  </div>
+  <div class="report-footer"><p>Jeff Curran Invitational · <a href="mailto:info@jcinvitational.com">info@jcinvitational.com</a> · 815-403-6696 · Athletes First. Always.</p></div>
+</div>
+</div>
+
+<!-- ═══════ PLATINUM TEMPLATE (reused for UnJunkd, BitFortune, NAMA, Jax, Kenny's) ═══════ -->
+
+<div class="report" id="report-unjunkd">
+<div class="max">
+  <div class="report-hero platinum">
+    <div class="sponsor-logo-box"><img src="jci-images/logos/logo-unjunkd.png" alt="UnJunkd" onerror="this.parentNode.innerHTML='<div class=\'logo-placeholder\'>UNJUNKD</div>'"></div>
+    <div class="hero-text">
+      <div class="eyebrow">JCI 3 · The Dominion · Sponsor Report</div>
+      <div class="tier-badge platinum">🥈 Platinum Sponsor</div>
+      <h1>UnJunkd</h1>
+      <div class="event-meta">May 9, 2026 · The Vixen, McHenry IL · 400+ Attendees · Livestreamed Worldwide</div>
+    </div>
+  </div>
+  <div class="big-numbers">
+    <div class="bn-card highlight"><span class="bn-val red">800,000</span><span class="bn-lbl">Total Estimated Reach</span><span class="bn-note">Event cycle · Sep–May 2026</span></div>
+    <div class="bn-card"><span class="bn-val">40,000+</span><span class="bn-lbl">Commercial Impressions</span><span class="bn-note">4 plays × 10K+ viewers</span></div>
+    <div class="bn-card"><span class="bn-val">10,000+</span><span class="bn-lbl">Live Stream Viewers</span><span class="bn-note">YouTube · event day</span></div>
+    <div class="bn-card"><span class="bn-val">400+</span><span class="bn-lbl">In-Person Attendees</span><span class="bn-note">The Vixen · sold out</span></div>
+  </div>
+  <div class="sec-header"><h2>Reach by Channel</h2><div class="sec-divider"></div></div>
+  <div class="channel-table">
+    <div class="ch-row header"><span>Placement</span><span>Reach</span><span>%</span></div>
+    <div class="ch-row"><div><div class="ch-name">JCI Instagram — Event Cycle</div><div class="ch-detail">Social recognition on campaigns and pre-event promotions</div></div><div class="ch-reach red">711,000</div><div class="ch-pct">88.9%</div><div class="ch-bar-wrap"><div class="ch-bar"><div class="ch-bar-fill" style="width:100%"></div></div></div></div>
+    <div class="ch-row"><div><div class="ch-name">@BigFrogBJJ — Event Cycle</div><div class="ch-detail">Cross-promotion and sponsor recognition posts</div></div><div class="ch-reach">598,000</div><div class="ch-pct">74.8%</div><div class="ch-bar-wrap"><div class="ch-bar"><div class="ch-bar-fill" style="width:84%"></div></div></div></div>
+    <div class="ch-row"><div><div class="ch-name">YouTube — Broadcast + Replays</div><div class="ch-detail">Mat logo visible in broadcast · 30-sec commercial × 4 minimum plays</div></div><div class="ch-reach">462,300</div><div class="ch-pct">57.8%</div><div class="ch-bar-wrap"><div class="ch-bar"><div class="ch-bar-fill" style="width:65%"></div></div></div></div>
+    <div class="ch-row"><div><div class="ch-name">20' LED Screen · Mat (2 Large) · Step-and-Repeat</div><div class="ch-detail">All in-venue and livestream placements</div></div><div class="ch-reach">10,400+</div><div class="ch-pct">—</div><div class="ch-bar-wrap"><div class="ch-bar"><div class="ch-bar-fill" style="width:8%"></div></div></div></div>
+    <div class="ch-row"><div><div class="ch-name">Email Blasts (4 Campaigns)</div><div class="ch-detail">14K subscribers · athletes &amp; supporters</div></div><div class="ch-reach">14,000</div><div class="ch-pct">—</div><div class="ch-bar-wrap"><div class="ch-bar"><div class="ch-bar-fill" style="width:10%"></div></div></div></div>
+    <div class="ch-total-row"><span class="tl">Total Estimated Reach</span><span class="tv">~800,000</span></div>
+  </div>
+  <div class="sec-header"><h2>Commercial Performance</h2><div class="sec-divider"></div></div>
+  <div class="commercial-box">
+    <div class="cb-head"><h3>30-Second Commercial Spot</h3><div class="cb-type">Platinum Tier · Minimum 4 Plays</div></div>
+    <div class="cb-plays">
+      <div class="cb-play"><span class="pv">4+</span><span class="pl">Plays During Live Event &amp; Stream</span></div>
+      <div class="cb-play"><span class="pv">10,000+</span><span class="pl">Live Viewers Per Play</span></div>
+      <div class="cb-play"><span class="pv">40,000+</span><span class="pl">Total Commercial Impressions</span></div>
+      <div class="cb-play"><span class="pv">30 sec</span><span class="pl">Spot Duration</span></div>
+    </div>
+    <div class="cb-note">UnJunkd's mat placement is visible in every aerial and ringside shot throughout the entire broadcast — including all replays and VOD content available long after event day.</div>
+  </div>
+  <div class="sec-header"><h2>Your Brand in Action</h2><div class="sec-divider"></div></div>
+  <div class="photos-grid">
+    <div class="photo-item"><img src="jci-images/web/mat-photo.jpg" alt="Mat" style="object-position:bottom center;"><div class="photo-caption"><span>UnJunkd</span> — Mat Logo Placement</div></div>
+    <div class="photo-item"><img src="jci-images/web/step-repeat.jpg" alt="Step and Repeat" style="object-position:center top;"><div class="photo-caption"><span>UnJunkd</span> — Step-and-Repeat Backdrop</div></div>
+  </div>
+  <div class="renewal-cta">
+    <div class="rc-text"><h3>Ready for <em>JCI 4?</em></h3><p>JCI 3 hit 1.77M combined reach — up +93%. JCI 4 is September 19, 2026 at The MAC, Crystal Lake. 780+ capacity. Commit to 2 events and save 15%, or lock in 3 for 25% off.</p><div class="rc-savings">2-Event Package: 15% Off · 3-Event Package: 25% Off + Replay Sponsorship Unlocked</div></div>
+    <a href="mailto:info@jcinvitational.com?subject=JCI 4 Platinum Sponsorship — UnJunkd" class="btn-cta">Renew for JCI 4</a>
+  </div>
+  <div class="report-footer"><p>Jeff Curran Invitational · <a href="mailto:info@jcinvitational.com">info@jcinvitational.com</a> · 815-403-6696 · Athletes First. Always.</p></div>
+</div>
+</div>
+
+<div class="report" id="report-bitfortune">
+<div class="max">
+  <div class="report-hero platinum">
+    <div class="sponsor-logo-box"><img src="jci-images/logos/logo-bitfortune.png" alt="BitFortune" onerror="this.parentNode.innerHTML='<div class=\'logo-placeholder\'>BITFORTUNE.COM</div>'"></div>
+    <div class="hero-text">
+      <div class="eyebrow">JCI 3 · The Dominion · Sponsor Report</div>
+      <div class="tier-badge platinum">🥈 Platinum Sponsor</div>
+      <h1>BitFortune.com</h1>
+      <div class="event-meta">May 9, 2026 · The Vixen, McHenry IL · 400+ Attendees · Livestreamed Worldwide</div>
+    </div>
+  </div>
+  <div class="big-numbers">
+    <div class="bn-card highlight"><span class="bn-val red">800,000</span><span class="bn-lbl">Total Estimated Reach</span><span class="bn-note">Event cycle · Sep–May 2026</span></div>
+    <div class="bn-card"><span class="bn-val">40,000+</span><span class="bn-lbl">Commercial Impressions</span><span class="bn-note">4 plays × 10K+ viewers</span></div>
+    <div class="bn-card"><span class="bn-val">10,000+</span><span class="bn-lbl">Live Stream Viewers</span><span class="bn-note">YouTube · event day</span></div>
+    <div class="bn-card"><span class="bn-val">400+</span><span class="bn-lbl">In-Person Attendees</span><span class="bn-note">The Vixen · sold out</span></div>
+  </div>
+  <div class="sec-header"><h2>Reach by Channel</h2><div class="sec-divider"></div></div>
+  <div class="channel-table">
+    <div class="ch-row header"><span>Placement</span><span>Reach</span><span>%</span></div>
+    <div class="ch-row"><div><div class="ch-name">JCI Instagram — Event Cycle</div><div class="ch-detail">Social recognition on campaigns and pre-event promotions</div></div><div class="ch-reach red">711,000</div><div class="ch-pct">88.9%</div><div class="ch-bar-wrap"><div class="ch-bar"><div class="ch-bar-fill" style="width:100%"></div></div></div></div>
+    <div class="ch-row"><div><div class="ch-name">@BigFrogBJJ — Event Cycle</div><div class="ch-detail">Cross-promotion and sponsor recognition posts</div></div><div class="ch-reach">598,000</div><div class="ch-pct">74.8%</div><div class="ch-bar-wrap"><div class="ch-bar"><div class="ch-bar-fill" style="width:84%"></div></div></div></div>
+    <div class="ch-row"><div><div class="ch-name">YouTube — Broadcast + Replays</div><div class="ch-detail">Mat logo visible · 30-sec commercial × 4 minimum plays</div></div><div class="ch-reach">462,300</div><div class="ch-pct">57.8%</div><div class="ch-bar-wrap"><div class="ch-bar"><div class="ch-bar-fill" style="width:65%"></div></div></div></div>
+    <div class="ch-row"><div><div class="ch-name">20' LED Screen · Mat (2 Large) · Step-and-Repeat</div><div class="ch-detail">All in-venue and livestream placements</div></div><div class="ch-reach">10,400+</div><div class="ch-pct">—</div><div class="ch-bar-wrap"><div class="ch-bar"><div class="ch-bar-fill" style="width:8%"></div></div></div></div>
+    <div class="ch-row"><div><div class="ch-name">Email Blasts (4 Campaigns)</div><div class="ch-detail">14K subscribers</div></div><div class="ch-reach">14,000</div><div class="ch-pct">—</div><div class="ch-bar-wrap"><div class="ch-bar"><div class="ch-bar-fill" style="width:10%"></div></div></div></div>
+    <div class="ch-total-row"><span class="tl">Total Estimated Reach</span><span class="tv">~800,000</span></div>
+  </div>
+  <div class="sec-header"><h2>Commercial Performance</h2><div class="sec-divider"></div></div>
+  <div class="commercial-box">
+    <div class="cb-head"><h3>30-Second Commercial Spot</h3><div class="cb-type">Platinum Tier · Minimum 4 Plays</div></div>
+    <div class="cb-plays">
+      <div class="cb-play"><span class="pv">4+</span><span class="pl">Plays During Live Event &amp; Stream</span></div>
+      <div class="cb-play"><span class="pv">10,000+</span><span class="pl">Live Viewers Per Play</span></div>
+      <div class="cb-play"><span class="pv">40,000+</span><span class="pl">Total Commercial Impressions</span></div>
+      <div class="cb-play"><span class="pv">30 sec</span><span class="pl">Spot Duration</span></div>
+    </div>
+    <div class="cb-note">BitFortune.com was featured on the step-and-repeat backdrop throughout commentary and interview segments — placing the brand in every major broadcast moment.</div>
+  </div>
+  <div class="sec-header"><h2>Your Brand in Action</h2><div class="sec-divider"></div></div>
+  <div class="photos-grid">
+    <div class="photo-item"><img src="jci-images/web/mat-photo.jpg" alt="Mat"><div class="photo-caption"><span>BitFortune.com</span> — Mat Logo Placement</div></div>
+    <div class="photo-item"><img src="jci-images/web/step-repeat.jpg" alt="Step and Repeat" style="object-position:center top;"><div class="photo-caption"><span>BitFortune.com</span> — Step-and-Repeat Backdrop</div></div>
+  </div>
+  <div class="renewal-cta">
+    <div class="rc-text"><h3>Ready for <em>JCI 4?</em></h3><p>JCI 4 is September 19, 2026 at The MAC — 780+ capacity, sold-out expected. Commit to 2 events and save 15%, or lock in 3 for 25% off + Replay Sponsorship unlocked.</p><div class="rc-savings">2-Event Package: 15% Off · 3-Event Package: 25% Off + Replay Sponsorship</div></div>
+    <a href="mailto:info@jcinvitational.com?subject=JCI 4 Platinum Sponsorship — BitFortune" class="btn-cta">Renew for JCI 4</a>
+  </div>
+  <div class="report-footer"><p>Jeff Curran Invitational · <a href="mailto:info@jcinvitational.com">info@jcinvitational.com</a> · 815-403-6696 · Athletes First. Always.</p></div>
+</div>
+</div>
+
+<div class="report" id="report-nama">
+<div class="max">
+  <div class="report-hero platinum">
+    <div class="sponsor-logo-box"><img src="jci-images/logos/logo-nama.png" alt="NAMA Water" onerror="this.parentNode.innerHTML='<div class=\'logo-placeholder\'>NAMA WATER<br>by Rose<br>Namajunas</div>'"></div>
+    <div class="hero-text">
+      <div class="eyebrow">JCI 3 · The Dominion · Sponsor Report</div>
+      <div class="tier-badge platinum">🥈 Platinum Sponsor</div>
+      <h1>NAMA Water</h1>
+      <div class="event-meta">May 9, 2026 · The Vixen, McHenry IL · 400+ Attendees · Livestreamed Worldwide</div>
+    </div>
+  </div>
+  <div class="big-numbers">
+    <div class="bn-card highlight"><span class="bn-val red">800,000</span><span class="bn-lbl">Total Estimated Reach</span><span class="bn-note">Event cycle · Sep–May 2026</span></div>
+    <div class="bn-card"><span class="bn-val">40,000+</span><span class="bn-lbl">Commercial Impressions</span><span class="bn-note">4 plays × 10K+ viewers</span></div>
+    <div class="bn-card"><span class="bn-val">10,000+</span><span class="bn-lbl">Live Stream Viewers</span><span class="bn-note">YouTube · event day</span></div>
+    <div class="bn-card"><span class="bn-val">400+</span><span class="bn-lbl">In-Person Attendees</span><span class="bn-note">The Vixen · sold out</span></div>
+  </div>
+  <div class="sec-header"><h2>Reach by Channel</h2><div class="sec-divider"></div></div>
+  <div class="channel-table">
+    <div class="ch-row header"><span>Placement</span><span>Reach</span><span>%</span></div>
+    <div class="ch-row"><div><div class="ch-name">JCI Instagram — Event Cycle</div><div class="ch-detail">Social recognition · pre-event promotions · Rose Namajunas cross-audience reach</div></div><div class="ch-reach red">711,000</div><div class="ch-pct">88.9%</div><div class="ch-bar-wrap"><div class="ch-bar"><div class="ch-bar-fill" style="width:100%"></div></div></div></div>
+    <div class="ch-row"><div><div class="ch-name">@BigFrogBJJ — Event Cycle</div><div class="ch-detail">Sponsor recognition · martial arts + wellness audience alignment</div></div><div class="ch-reach">598,000</div><div class="ch-pct">74.8%</div><div class="ch-bar-wrap"><div class="ch-bar"><div class="ch-bar-fill" style="width:84%"></div></div></div></div>
+    <div class="ch-row"><div><div class="ch-name">YouTube — Broadcast + Replays</div><div class="ch-detail">Mat logo visible · 30-sec commercial × 4 minimum plays</div></div><div class="ch-reach">462,300</div><div class="ch-pct">57.8%</div><div class="ch-bar-wrap"><div class="ch-bar"><div class="ch-bar-fill" style="width:65%"></div></div></div></div>
+    <div class="ch-row"><div><div class="ch-name">20' LED Screen · Mat (2 Large) · Step-and-Repeat</div><div class="ch-detail">All in-venue and livestream placements</div></div><div class="ch-reach">10,400+</div><div class="ch-pct">—</div><div class="ch-bar-wrap"><div class="ch-bar"><div class="ch-bar-fill" style="width:8%"></div></div></div></div>
+    <div class="ch-row"><div><div class="ch-name">Email Blasts (4 Campaigns)</div><div class="ch-detail">14K subscribers — health, fitness &amp; wellness audience</div></div><div class="ch-reach">14,000</div><div class="ch-pct">—</div><div class="ch-bar-wrap"><div class="ch-bar"><div class="ch-bar-fill" style="width:10%"></div></div></div></div>
+    <div class="ch-total-row"><span class="tl">Total Estimated Reach</span><span class="tv">~800,000</span></div>
+  </div>
+  <div class="sec-header"><h2>Commercial Performance</h2><div class="sec-divider"></div></div>
+  <div class="commercial-box">
+    <div class="cb-head"><h3>30-Second Commercial Spot</h3><div class="cb-type">Platinum Tier · Minimum 4 Plays</div></div>
+    <div class="cb-plays">
+      <div class="cb-play"><span class="pv">4+</span><span class="pl">Plays During Live Event &amp; Stream</span></div>
+      <div class="cb-play"><span class="pv">10,000+</span><span class="pl">Live Viewers Per Play</span></div>
+      <div class="cb-play"><span class="pv">40,000+</span><span class="pl">Total Commercial Impressions</span></div>
+      <div class="cb-play"><span class="pv">30 sec</span><span class="pl">Spot Duration</span></div>
+    </div>
+    <div class="cb-note">NAMA Water reached a deeply aligned audience — JCI's health-conscious, fitness-driven community is exactly the demographic that values hydration and performance brands.</div>
+  </div>
+  <div class="sec-header"><h2>Your Brand in Action</h2><div class="sec-divider"></div></div>
+  <div class="photos-grid">
+    <div class="photo-item"><img src="jci-images/web/mat-photo.jpg" alt="Mat"><div class="photo-caption"><span>NAMA Water</span> — Mat Logo Placement</div></div>
+    <div class="photo-item"><img src="jci-images/web/step-repeat.jpg" alt="Step and Repeat" style="object-position:center 60%;"><div class="photo-caption"><span>NAMA Water</span> — Step-and-Repeat Backdrop</div></div>
+  </div>
+  <div class="renewal-cta">
+    <div class="rc-text"><h3>Ready for <em>JCI 4?</em></h3><p>800,000 health and fitness fans already saw NAMA Water at JCI 3. JCI 4 at The MAC on Sep 19, 2026 will be even bigger. Lock in your spot now.</p><div class="rc-savings">2-Event Package: 15% Off · 3-Event Package: 25% Off + Replay Sponsorship</div></div>
+    <a href="mailto:info@jcinvitational.com?subject=JCI 4 Platinum Sponsorship — NAMA Water" class="btn-cta">Renew for JCI 4</a>
+  </div>
+  <div class="report-footer"><p>Jeff Curran Invitational · <a href="mailto:info@jcinvitational.com">info@jcinvitational.com</a> · 815-403-6696 · Athletes First. Always.</p></div>
+</div>
+</div>
+
+<div class="report" id="report-jax">
+<div class="max">
+  <div class="report-hero platinum">
+    <div class="sponsor-logo-box"><img src="jci-images/logos/logo-jax.png" alt="Jax Tire & Auto" onerror="this.parentNode.innerHTML='<div class=\'logo-placeholder\'>JAX TIRE<br>&amp; AUTO</div>'"></div>
+    <div class="hero-text">
+      <div class="eyebrow">JCI 3 · The Dominion · Sponsor Report</div>
+      <div class="tier-badge platinum">🥈 Platinum Sponsor</div>
+      <h1>Jax Tire &amp; Auto</h1>
+      <div class="event-meta">May 9, 2026 · The Vixen, McHenry IL · 400+ Attendees · Livestreamed Worldwide</div>
+    </div>
+  </div>
+  <div class="big-numbers">
+    <div class="bn-card highlight"><span class="bn-val red">800,000</span><span class="bn-lbl">Total Estimated Reach</span><span class="bn-note">Event cycle · Sep–May 2026</span></div>
+    <div class="bn-card"><span class="bn-val">40,000+</span><span class="bn-lbl">Commercial Impressions</span><span class="bn-note">4 plays × 10K+ viewers</span></div>
+    <div class="bn-card"><span class="bn-val">10,000+</span><span class="bn-lbl">Live Stream Viewers</span><span class="bn-note">YouTube · event day</span></div>
+    <div class="bn-card"><span class="bn-val">400+</span><span class="bn-lbl">In-Person Attendees</span><span class="bn-note">The Vixen · sold out</span></div>
+  </div>
+  <div class="sec-header"><h2>Reach by Channel</h2><div class="sec-divider"></div></div>
+  <div class="channel-table">
+    <div class="ch-row header"><span>Placement</span><span>Reach</span><span>%</span></div>
+    <div class="ch-row"><div><div class="ch-name">JCI Instagram — Event Cycle</div><div class="ch-detail">Social recognition · local Chicago suburbs + regional audience alignment</div></div><div class="ch-reach red">711,000</div><div class="ch-pct">88.9%</div><div class="ch-bar-wrap"><div class="ch-bar"><div class="ch-bar-fill" style="width:100%"></div></div></div></div>
+    <div class="ch-row"><div><div class="ch-name">@BigFrogBJJ — Event Cycle</div><div class="ch-detail">Regional Midwest audience — IL, WI, IN, IA</div></div><div class="ch-reach">598,000</div><div class="ch-pct">74.8%</div><div class="ch-bar-wrap"><div class="ch-bar"><div class="ch-bar-fill" style="width:84%"></div></div></div></div>
+    <div class="ch-row"><div><div class="ch-name">YouTube — Broadcast + Replays</div><div class="ch-detail">Mat logo · 30-sec commercial × 4 minimum plays</div></div><div class="ch-reach">462,300</div><div class="ch-pct">57.8%</div><div class="ch-bar-wrap"><div class="ch-bar"><div class="ch-bar-fill" style="width:65%"></div></div></div></div>
+    <div class="ch-row"><div><div class="ch-name">20' LED Screen · Mat (2 Large) · Step-and-Repeat</div><div class="ch-detail">All in-venue and livestream placements</div></div><div class="ch-reach">10,400+</div><div class="ch-pct">—</div><div class="ch-bar-wrap"><div class="ch-bar"><div class="ch-bar-fill" style="width:8%"></div></div></div></div>
+    <div class="ch-row"><div><div class="ch-name">Email Blasts (4 Campaigns)</div><div class="ch-detail">14K subscribers — locally anchored audience</div></div><div class="ch-reach">14,000</div><div class="ch-pct">—</div><div class="ch-bar-wrap"><div class="ch-bar"><div class="ch-bar-fill" style="width:10%"></div></div></div></div>
+    <div class="ch-total-row"><span class="tl">Total Estimated Reach</span><span class="tv">~800,000</span></div>
+  </div>
+  <div class="sec-header"><h2>Commercial Performance</h2><div class="sec-divider"></div></div>
+  <div class="commercial-box">
+    <div class="cb-head"><h3>30-Second Commercial Spot</h3><div class="cb-type">Platinum Tier · Minimum 4 Plays</div></div>
+    <div class="cb-plays">
+      <div class="cb-play"><span class="pv">4+</span><span class="pl">Plays During Live Event &amp; Stream</span></div>
+      <div class="cb-play"><span class="pv">10,000+</span><span class="pl">Live Viewers Per Play</span></div>
+      <div class="cb-play"><span class="pv">40,000+</span><span class="pl">Total Commercial Impressions</span></div>
+      <div class="cb-play"><span class="pv">30 sec</span><span class="pl">Spot Duration</span></div>
+    </div>
+    <div class="cb-note">Jax Tire &amp; Auto reached a core local and regional audience — Chicago suburbs, McHenry County, and Midwest families who are active community members and loyal to brands that support their sport.</div>
+  </div>
+  <div class="sec-header"><h2>Your Brand in Action</h2><div class="sec-divider"></div></div>
+  <div class="photos-grid">
+    <div class="photo-item"><img src="jci-images/web/mat-photo.jpg" alt="Mat"><div class="photo-caption"><span>Jax Tire &amp; Auto</span> — Mat Logo Placement</div></div>
+    <div class="photo-item"><img src="jci-images/web/step-repeat.jpg" alt="Step and Repeat" style="object-position:left center;"><div class="photo-caption"><span>Jax Tire &amp; Auto</span> — Step-and-Repeat Backdrop</div></div>
+  </div>
+  <div class="renewal-cta">
+    <div class="rc-text"><h3>Ready for <em>JCI 4?</em></h3><p>JCI 4 comes home to The MAC in Crystal Lake — your backyard. September 19, 2026. 780+ local community members in-person and thousands more watching online.</p><div class="rc-savings">2-Event Package: 15% Off · 3-Event Package: 25% Off + Replay Sponsorship</div></div>
+    <a href="mailto:info@jcinvitational.com?subject=JCI 4 Platinum Sponsorship — Jax Tire and Auto" class="btn-cta">Renew for JCI 4</a>
+  </div>
+  <div class="report-footer"><p>Jeff Curran Invitational · <a href="mailto:info@jcinvitational.com">info@jcinvitational.com</a> · 815-403-6696 · Athletes First. Always.</p></div>
+</div>
+</div>
+
+<div class="report" id="report-kennys">
+<div class="max">
+  <div class="report-hero platinum">
+    <div class="sponsor-logo-box"><img src="jci-images/logos/logo-kennys.png" alt="Kenny's Flooring" onerror="this.parentNode.innerHTML='<div class=\'logo-placeholder\'>KENNY\'S<br>FLOORING</div>'"></div>
+    <div class="hero-text">
+      <div class="eyebrow">JCI 3 · The Dominion · Sponsor Report</div>
+      <div class="tier-badge platinum">🥈 Platinum Sponsor</div>
+      <h1>Kenny's Flooring</h1>
+      <div class="event-meta">May 9, 2026 · The Vixen, McHenry IL · 400+ Attendees · Livestreamed Worldwide</div>
+    </div>
+  </div>
+  <div class="big-numbers">
+    <div class="bn-card highlight"><span class="bn-val red">800,000</span><span class="bn-lbl">Total Estimated Reach</span><span class="bn-note">Event cycle · Sep–May 2026</span></div>
+    <div class="bn-card"><span class="bn-val">40,000+</span><span class="bn-lbl">Commercial Impressions</span><span class="bn-note">4 plays × 10K+ viewers</span></div>
+    <div class="bn-card"><span class="bn-val">10,000+</span><span class="bn-lbl">Live Stream Viewers</span><span class="bn-note">YouTube · event day</span></div>
+    <div class="bn-card"><span class="bn-val">400+</span><span class="bn-lbl">In-Person Attendees</span><span class="bn-note">The Vixen · sold out</span></div>
+  </div>
+  <div class="sec-header"><h2>Reach by Channel</h2><div class="sec-divider"></div></div>
+  <div class="channel-table">
+    <div class="ch-row header"><span>Placement</span><span>Reach</span><span>%</span></div>
+    <div class="ch-row"><div><div class="ch-name">JCI Instagram — Event Cycle</div><div class="ch-detail">Social recognition · homeowner + family demographic alignment</div></div><div class="ch-reach red">711,000</div><div class="ch-pct">88.9%</div><div class="ch-bar-wrap"><div class="ch-bar"><div class="ch-bar-fill" style="width:100%"></div></div></div></div>
+    <div class="ch-row"><div><div class="ch-name">@BigFrogBJJ — Event Cycle</div><div class="ch-detail">Regional Midwest audience</div></div><div class="ch-reach">598,000</div><div class="ch-pct">74.8%</div><div class="ch-bar-wrap"><div class="ch-bar"><div class="ch-bar-fill" style="width:84%"></div></div></div></div>
+    <div class="ch-row"><div><div class="ch-name">YouTube — Broadcast + Replays</div><div class="ch-detail">Mat logo · 30-sec commercial × 4 minimum plays</div></div><div class="ch-reach">462,300</div><div class="ch-pct">57.8%</div><div class="ch-bar-wrap"><div class="ch-bar"><div class="ch-bar-fill" style="width:65%"></div></div></div></div>
+    <div class="ch-row"><div><div class="ch-name">20' LED Screen · Mat (2 Large) · Step-and-Repeat</div><div class="ch-detail">All in-venue and livestream placements</div></div><div class="ch-reach">10,400+</div><div class="ch-pct">—</div><div class="ch-bar-wrap"><div class="ch-bar"><div class="ch-bar-fill" style="width:8%"></div></div></div></div>
+    <div class="ch-row"><div><div class="ch-name">Email Blasts (4 Campaigns)</div><div class="ch-detail">14K subscribers — families, homeowners, community members</div></div><div class="ch-reach">14,000</div><div class="ch-pct">—</div><div class="ch-bar-wrap"><div class="ch-bar"><div class="ch-bar-fill" style="width:10%"></div></div></div></div>
+    <div class="ch-total-row"><span class="tl">Total Estimated Reach</span><span class="tv">~800,000</span></div>
+  </div>
+  <div class="sec-header"><h2>Commercial Performance</h2><div class="sec-divider"></div></div>
+  <div class="commercial-box">
+    <div class="cb-head"><h3>30-Second Commercial Spot</h3><div class="cb-type">Platinum Tier · Minimum 4 Plays</div></div>
+    <div class="cb-plays">
+      <div class="cb-play"><span class="pv">4+</span><span class="pl">Plays During Live Event &amp; Stream</span></div>
+      <div class="cb-play"><span class="pv">10,000+</span><span class="pl">Live Viewers Per Play</span></div>
+      <div class="cb-play"><span class="pv">40,000+</span><span class="pl">Total Commercial Impressions</span></div>
+      <div class="cb-play"><span class="pv">30 sec</span><span class="pl">Spot Duration</span></div>
+    </div>
+    <div class="cb-note">Kenny's Flooring's brand was seen by an active, family-oriented audience — homeowners and community members who are among the most loyal consumers in the JCI network.</div>
+  </div>
+  <div class="sec-header"><h2>Your Brand in Action</h2><div class="sec-divider"></div></div>
+  <div class="photos-grid">
+    <div class="photo-item"><img src="jci-images/web/mat-photo.jpg" alt="Mat"><div class="photo-caption"><span>Kenny's Flooring</span> — Mat Logo Placement</div></div>
+    <div class="photo-item"><img src="jci-images/web/step-repeat.jpg" alt="Step and Repeat" style="object-position:right center;"><div class="photo-caption"><span>Kenny's Flooring</span> — Step-and-Repeat Backdrop</div></div>
+  </div>
+  <div class="renewal-cta">
+    <div class="rc-text"><h3>Ready for <em>JCI 4?</em></h3><p>JCI 4 is at The MAC in Crystal Lake — the heart of your market. September 19, 2026. Keep your brand in front of the local community that already knows and trusts you.</p><div class="rc-savings">2-Event Package: 15% Off · 3-Event Package: 25% Off + Replay Sponsorship</div></div>
+    <a href="mailto:info@jcinvitational.com?subject=JCI 4 Platinum Sponsorship — Kennys Flooring" class="btn-cta">Renew for JCI 4</a>
+  </div>
+  <div class="report-footer"><p>Jeff Curran Invitational · <a href="mailto:info@jcinvitational.com">info@jcinvitational.com</a> · 815-403-6696 · Athletes First. Always.</p></div>
+</div>
+</div>
+
+<!-- ═══════ GOLD: Leatherman ═══════ -->
+<div class="report" id="report-leatherman">
+<div class="max">
+  <div class="report-hero gold">
+    <div class="sponsor-logo-box"><img src="jci-images/logos/logo-leatherman.png" alt="Leatherman" onerror="this.parentNode.innerHTML='<div class=\'logo-placeholder\'>LEATHERMAN</div>'"></div>
+    <div class="hero-text">
+      <div class="eyebrow">JCI 3 · The Dominion · Sponsor Report</div>
+      <div class="tier-badge gold">🥇 Gold Sponsor</div>
+      <h1>Leatherman</h1>
+      <div class="event-meta">May 9, 2026 · The Vixen, McHenry IL · 400+ Attendees · Livestreamed Worldwide</div>
+    </div>
+  </div>
+  <div class="big-numbers">
+    <div class="bn-card highlight"><span class="bn-val red">450,000</span><span class="bn-lbl">Total Estimated Reach</span><span class="bn-note">Event cycle · Sep–May 2026</span></div>
+    <div class="bn-card"><span class="bn-val">40,000+</span><span class="bn-lbl">Commercial Impressions</span><span class="bn-note">4 plays × 10K+ viewers</span></div>
+    <div class="bn-card"><span class="bn-val">10,000+</span><span class="bn-lbl">Live Stream Viewers</span><span class="bn-note">YouTube · event day</span></div>
+    <div class="bn-card"><span class="bn-val">400+</span><span class="bn-lbl">In-Person Attendees</span><span class="bn-note">The Vixen · sold out</span></div>
+  </div>
+  <div class="sec-header"><h2>Reach by Channel</h2><div class="sec-divider"></div></div>
+  <div class="channel-table">
+    <div class="ch-row header"><span>Placement</span><span>Reach</span><span>%</span></div>
+    <div class="ch-row"><div><div class="ch-name">JCI Instagram — Event Cycle</div><div class="ch-detail">Social recognition + pre-event promotions · tags and mentions</div></div><div class="ch-reach red">711,000</div><div class="ch-pct">—</div><div class="ch-bar-wrap"><div class="ch-bar"><div class="ch-bar-fill" style="width:100%"></div></div></div></div>
+    <div class="ch-row"><div><div class="ch-name">YouTube — Broadcast + Replays</div><div class="ch-detail">Mat logo visible in broadcast · 15-sec commercial × 4 minimum plays</div></div><div class="ch-reach">462,300</div><div class="ch-pct">—</div><div class="ch-bar-wrap"><div class="ch-bar"><div class="ch-bar-fill" style="width:65%"></div></div></div></div>
+    <div class="ch-row"><div><div class="ch-name">20' LED Screen · Mat (2 Small) · Step-and-Repeat</div><div class="ch-detail">All in-venue and livestream placements</div></div><div class="ch-reach">10,400+</div><div class="ch-pct">—</div><div class="ch-bar-wrap"><div class="ch-bar"><div class="ch-bar-fill" style="width:8%"></div></div></div></div>
+    <div class="ch-row"><div><div class="ch-name">Printed Posters &amp; Flyers</div><div class="ch-detail">Distributed pre-event across the region</div></div><div class="ch-reach">Regional</div><div class="ch-pct">—</div><div class="ch-bar-wrap"><div class="ch-bar"><div class="ch-bar-fill" style="width:4%"></div></div></div></div>
+    <div class="ch-total-row"><span class="tl">Total Estimated Reach</span><span class="tv">~450,000</span></div>
+  </div>
+  <div class="sec-header"><h2>Commercial Performance</h2><div class="sec-divider"></div></div>
+  <div class="commercial-box">
+    <div class="cb-head"><h3>15-Second Commercial Spot</h3><div class="cb-type">Gold Tier · Minimum 4 Plays</div></div>
+    <div class="cb-plays">
+      <div class="cb-play"><span class="pv">4+</span><span class="pl">Plays During Live Event &amp; Stream</span></div>
+      <div class="cb-play"><span class="pv">10,000+</span><span class="pl">Live Viewers Per Play</span></div>
+      <div class="cb-play"><span class="pv">40,000+</span><span class="pl">Total Commercial Impressions</span></div>
+      <div class="cb-play"><span class="pv">15 sec</span><span class="pl">Spot Duration</span></div>
+    </div>
+    <div class="cb-note">Leatherman reached a highly targeted audience of active, outdoors-oriented competitors and martial arts enthusiasts — the exact demographic for performance tools and gear.</div>
+  </div>
+  <div class="sec-header"><h2>Your Brand in Action</h2><div class="sec-divider"></div></div>
+  <div class="photos-grid">
+    <div class="photo-item"><img src="jci-images/web/mat-photo.jpg" alt="Mat"><div class="photo-caption"><span>Leatherman</span> — Mat Logo Placement</div></div>
+    <div class="photo-item"><img src="jci-images/web/step-repeat.jpg" alt="Step and Repeat" style="object-position:center top;"><div class="photo-caption"><span>Leatherman</span> — Step-and-Repeat Backdrop</div></div>
+  </div>
+  <div class="renewal-cta">
+    <div class="rc-text"><h3>Ready for <em>JCI 4?</em></h3><p>JCI 4 is September 19, 2026 at The MAC — 780+ capacity. Upgrade to Platinum and reach 800K+, or stay at Gold with the same committed audience. Commit to 2 events and save 15%.</p><div class="rc-savings">Upgrade to Platinum or lock in 2-Event Gold: 15% Off</div></div>
+    <a href="mailto:info@jcinvitational.com?subject=JCI 4 Gold Sponsorship — Leatherman" class="btn-cta">Renew for JCI 4</a>
+  </div>
+  <div class="report-footer"><p>Jeff Curran Invitational · <a href="mailto:info@jcinvitational.com">info@jcinvitational.com</a> · 815-403-6696 · Athletes First. Always.</p></div>
+</div>
+</div>
+
+<!-- ═══════ GOLD: Alpha King ═══════ -->
+<div class="report" id="report-alphaking">
+<div class="max">
+  <div class="report-hero gold">
+    <div class="sponsor-logo-box"><img src="jci-images/logos/logo-alphaking.png" alt="Alpha King" onerror="this.parentNode.innerHTML='<div class=\'logo-placeholder\'>ALPHA KING</div>'"></div>
+    <div class="hero-text">
+      <div class="eyebrow">JCI 3 · The Dominion · Sponsor Report</div>
+      <div class="tier-badge gold">🥇 Gold Sponsor</div>
+      <h1>Alpha King</h1>
+      <div class="event-meta">May 9, 2026 · The Vixen, McHenry IL · 400+ Attendees · Livestreamed Worldwide</div>
+    </div>
+  </div>
+  <div class="big-numbers">
+    <div class="bn-card highlight"><span class="bn-val red">450,000</span><span class="bn-lbl">Total Estimated Reach</span><span class="bn-note">Event cycle · Sep–May 2026</span></div>
+    <div class="bn-card"><span class="bn-val">40,000+</span><span class="bn-lbl">Commercial Impressions</span><span class="bn-note">4 plays × 10K+ viewers</span></div>
+    <div class="bn-card"><span class="bn-val">10,000+</span><span class="bn-lbl">Live Stream Viewers</span><span class="bn-note">YouTube · event day</span></div>
+    <div class="bn-card"><span class="bn-val">400+</span><span class="bn-lbl">In-Person Attendees</span><span class="bn-note">The Vixen · sold out</span></div>
+  </div>
+  <div class="sec-header"><h2>Reach by Channel</h2><div class="sec-divider"></div></div>
+  <div class="channel-table">
+    <div class="ch-row header"><span>Placement</span><span>Reach</span><span>%</span></div>
+    <div class="ch-row"><div><div class="ch-name">JCI Instagram — Event Cycle</div><div class="ch-detail">Social recognition + pre-event promotions · performance &amp; supplement audience alignment</div></div><div class="ch-reach red">711,000</div><div class="ch-pct">—</div><div class="ch-bar-wrap"><div class="ch-bar"><div class="ch-bar-fill" style="width:100%"></div></div></div></div>
+    <div class="ch-row"><div><div class="ch-name">YouTube — Broadcast + Replays</div><div class="ch-detail">Mat logo visible in broadcast · 15-sec commercial × 4 minimum plays</div></div><div class="ch-reach">462,300</div><div class="ch-pct">—</div><div class="ch-bar-wrap"><div class="ch-bar"><div class="ch-bar-fill" style="width:65%"></div></div></div></div>
+    <div class="ch-row"><div><div class="ch-name">20' LED Screen · Mat (2 Small) · Step-and-Repeat</div><div class="ch-detail">All in-venue and livestream placements</div></div><div class="ch-reach">10,400+</div><div class="ch-pct">—</div><div class="ch-bar-wrap"><div class="ch-bar"><div class="ch-bar-fill" style="width:8%"></div></div></div></div>
+    <div class="ch-row"><div><div class="ch-name">Printed Posters &amp; Flyers</div><div class="ch-detail">Distributed pre-event across the region</div></div><div class="ch-reach">Regional</div><div class="ch-pct">—</div><div class="ch-bar-wrap"><div class="ch-bar"><div class="ch-bar-fill" style="width:4%"></div></div></div></div>
+    <div class="ch-total-row"><span class="tl">Total Estimated Reach</span><span class="tv">~450,000</span></div>
+  </div>
+  <div class="sec-header"><h2>Commercial Performance</h2><div class="sec-divider"></div></div>
+  <div class="commercial-box">
+    <div class="cb-head"><h3>15-Second Commercial Spot</h3><div class="cb-type">Gold Tier · Minimum 4 Plays</div></div>
+    <div class="cb-plays">
+      <div class="cb-play"><span class="pv">4+</span><span class="pl">Plays During Live Event &amp; Stream</span></div>
+      <div class="cb-play"><span class="pv">10,000+</span><span class="pl">Live Viewers Per Play</span></div>
+      <div class="cb-play"><span class="pv">40,000+</span><span class="pl">Total Commercial Impressions</span></div>
+      <div class="cb-play"><span class="pv">15 sec</span><span class="pl">Spot Duration</span></div>
+    </div>
+    <div class="cb-note">Alpha King reached an elite fitness audience — competitive athletes, gym-goers, and performance-focused consumers aged 18–44 who are prime customers for premium supplement brands.</div>
+  </div>
+  <div class="sec-header"><h2>Your Brand in Action</h2><div class="sec-divider"></div></div>
+  <div class="photos-grid">
+    <div class="photo-item"><img src="jci-images/web/mat-photo.jpg" alt="Mat"><div class="photo-caption"><span>Alpha King</span> — Mat Logo Placement</div></div>
+    <div class="photo-item"><img src="jci-images/web/step-repeat.jpg" alt="Step and Repeat" style="object-position:center top;"><div class="photo-caption"><span>Alpha King</span> — Step-and-Repeat Backdrop</div></div>
+  </div>
+  <div class="renewal-cta">
+    <div class="rc-text"><h3>Ready for <em>JCI 4?</em></h3><p>450,000 athletes and fitness fans saw Alpha King at JCI 3. JCI 4 is September 19, 2026 — bigger venue, bigger reach. Upgrade to Platinum and hit 800K+, or stay at Gold. Commit to 2 events and save 15%.</p><div class="rc-savings">Upgrade to Platinum or lock in 2-Event Gold: 15% Off</div></div>
+    <a href="mailto:info@jcinvitational.com?subject=JCI 4 Gold Sponsorship — Alpha King" class="btn-cta">Renew for JCI 4</a>
+  </div>
+  <div class="report-footer"><p>Jeff Curran Invitational · <a href="mailto:info@jcinvitational.com">info@jcinvitational.com</a> · 815-403-6696 · Athletes First. Always.</p></div>
+</div>
+</div>
+
+<script>
+const reports = ['ari','epro','unjunkd','bitfortune','nama','jax','kennys','leatherman','alphaking'];
+
+function show(id) {
+  reports.forEach(r => {
+    document.getElementById('report-'+r).classList.remove('active');
+  });
+  document.querySelectorAll('.sp-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('report-'+id).classList.add('active');
+  event.currentTarget.classList.add('active');
+  window.scrollTo(0,0);
+}
+
+// hash routing
+function loadFromHash() {
+  const hash = window.location.hash.replace('#','');
+  if (hash && reports.includes(hash)) {
+    const btn = document.querySelector(`[onclick="show('${hash}')"]`);
+    if (btn) { show.call(btn, hash); btn.classList.add('active'); }
+  }
+}
+window.addEventListener('hashchange', loadFromHash);
+loadFromHash();
+</script>
+</body>
+</html>
